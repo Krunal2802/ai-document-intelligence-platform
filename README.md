@@ -1,1 +1,1 @@
-## AI DOcument Intelligence Platform
+## AI Document Intelligence Platform
