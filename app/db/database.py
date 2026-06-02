@@ -19,6 +19,6 @@ SessionLocal = sessionmaker(
 try:
     with engine.connect() as conn:
         result = conn.execute(text("SELECT 1"))
-        print("Database Connected Successfully!")
+        print("Database Connected Successfully!!!")
 except Exception as e:
     print("Database Connection Failed", str(e))
