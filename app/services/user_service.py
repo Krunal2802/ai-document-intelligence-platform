@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.user_model import User
+from app.models.user import User
 
 def create_user(
     db: Session,
@@ -23,3 +23,6 @@ def get_user_by_email(
     return (
         db.query(User).filter(User.email == email).first()
     )
+
+def get_users(db: Session):
+    return db.query(User).all()
