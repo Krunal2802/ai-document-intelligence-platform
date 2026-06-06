@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserLogin
 from app.services.user_service import create_user, get_user_by_email
 from app.db.dependencies import get_db
-from app.core.security import hash_password, verify_password
+from app.core.security import hash_password, verify_password, create_access_token
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ async def signup(
 async def login(
     user: UserLogin,
     db: Session = Depends(get_db)
-    ):
+):
     db_user = get_user_by_email(
         db = db,
         email = user.email
@@ -45,6 +45,14 @@ async def login(
             "message" : "Invalid password"
         }
 
+    access_token = create_access_token(
+        {
+            "sub": db_user.email,
+            "user_id": db_user.id
+        }
+    )
+
     return {
-        "message":"Login Successful!!!"
+        "access_token" : access_token,
+        "token_type" : "bearer"
     }
