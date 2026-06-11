@@ -4,6 +4,7 @@ from app.schemas.user import UserCreate, UserLogin
 from app.services.user_service import create_user, get_user_by_email
 from app.db.dependencies import get_db
 from app.core.security import hash_password, verify_password, create_access_token
+from app.core.auth import get_current_user
 
 router = APIRouter()
 
@@ -12,6 +13,13 @@ async def signup(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
+    check_email_exists = get_user_by_email(db, user.email)
+
+    if check_email_exists:
+        return {
+            "message": "This email is used already, use different email."
+        }
+        
     new_user = create_user(
         db = db,
         name = user.name,
@@ -56,3 +64,13 @@ async def login(
         "access_token" : access_token,
         "token_type" : "bearer"
     }
+
+@router.get("/me/")
+async def get_me(
+    current_user = Depends(get_current_user)
+):
+    return {
+            "id": current_user.id,
+            "name": current_user.name,
+            "email": current_user.email
+        }
