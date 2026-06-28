@@ -10,3 +10,11 @@ python-dotenv
 passlib==1.7.4
 bcrypt==4.0.1
 python-jose[cryptography]
+boto3
+pydantic-settings
+PyPDF2
+python-docx
+langchain-text-splitters
+sentence-transformers
+pgvector
+openai

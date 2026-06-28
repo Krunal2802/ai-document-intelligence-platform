@@ -1,28 +1,33 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
 
-def create_user(
-    db: Session,
-    name: str, 
-    email: str,
-    password: str
-):
+class UserService:
 
-    user = User(name = name, email = email, password = password)
+    def __init__(self, db: Session):
+        self.db = db
 
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    def create_user(
+        self,
+        name: str, 
+        email: str,
+        password: str
+    ):
 
-    return user
+        user = User(name = name, email = email, password = password)
 
-def get_user_by_email(
-    db: Session,
-    email: str
-):
-    return (
-        db.query(User).filter(User.email == email).first()
-    )
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
 
-def get_users(db: Session):
-    return db.query(User).all()
+        return user
+
+    def get_user_by_email(
+        self,
+        email: str
+    ):
+        return (
+            self.db.query(User).filter(User.email == email).first()
+        )
+
+    def get_users(self):
+        return self.db.query(User).all()

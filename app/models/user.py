@@ -13,4 +13,7 @@ class User(Base):
     role = Column(String, default="USER")
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    knowledge_bases = relationship("KnowledgeBase", back_populates="owner")
+    knowledge_bases = relationship(
+        "KnowledgeBase", 
+        back_populates="owner"
+    )

@@ -5,7 +5,7 @@ from datetime import datetime
 from app.models.base import Base
 
 class KnowledgeBase(Base):
-    __tablename__ = "knowledge_base"
+    __tablename__ = "knowledge_bases"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -13,4 +13,12 @@ class KnowledgeBase(Base):
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    owner = relationship("User", back_populates="knowledge_bases")
+    owner = relationship(
+        "User",
+        back_populates="knowledge_bases"
+    )
+
+    documents = relationship(
+        "Document", 
+        back_populates="knowledge_base"
+    )

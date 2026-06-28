@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.schemas.knowledge_base import KnowledgeBaseCreate, KnowledgeBaseUpdate, KnowledgeBaseResponse
 from app.core.auth import get_current_user
 from app.db.dependencies import get_db
-from app.services.knowledge_base_service import create_knowledge_base, get_knowledge_base_by_id, get_all_knowledge_bases, update_knowledge_base, delete_knowledge_base
+from app.services.knowledge_base_service import KnowledgeBaseService
+from app.utils.validator import verify_knowledge_base
 
 router = APIRouter()
 
@@ -13,8 +14,9 @@ def create_knowledge_base_route(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    kb = create_knowledge_base(
-        db = db,
+    kb_service = KnowledgeBaseService(db)
+
+    kb = kb_service.create_knowledge_base(
         user_id = current_user.id,
         name = kb_data.name,
         description = kb_data.description
@@ -27,55 +29,65 @@ def get_knowledge_bases_route(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):   
-    return get_all_knowledge_bases(db,current_user.id)
+    kb_service = KnowledgeBaseService(db)
 
-@router.get("/{knowledge_base_id}/", response_model=KnowledgeBaseResponse)
+    kb = kb_service.get_all_knowledge_bases(current_user.id)
+
+    return kb
+
+@router.get("/{knowledge_base_id}", response_model=KnowledgeBaseResponse)
 def get_knowledge_base_route(
     knowledge_base_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    kb = get_knowledge_base_by_id(db, knowledge_base_id, current_user.id)
+    return verify_knowledge_base(
+        db,
+        knowledge_base_id,
+        current_user.id
+    )
 
-    if kb is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Knowledge Base not found"
-        )
-
-    return kb
-
-@router.put("/{knowledge_base_id}/", response_model=KnowledgeBaseResponse)
+@router.put("/{knowledge_base_id}", response_model=KnowledgeBaseResponse)
 def update_knowledge_base_route(
     kb_data: KnowledgeBaseUpdate,
     knowledge_base_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    kb = update_knowledge_base(db, knowledge_base_id, current_user.id, kb_data.name, kb_data.description)
+    kb_service = KnowledgeBaseService(db)
 
-    if kb is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Knowledge Base not found"
-        )
+    verify_knowledge_base(
+        db,
+        knowledge_base_id,
+        current_user.id
+    )
 
-    return kb
+    return kb_service.update_knowledge_base(
+        knowledge_base_id, 
+        current_user.id, 
+        kb_data.name, 
+        kb_data.description
+    )
 
-@router.delete("/{knowledge_base_id}/")
+@router.delete("/{knowledge_base_id}")
 def delete_knowledge_base_route(
     knowledge_base_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    result = delete_knowledge_base(db, knowledge_base_id, current_user.id)
+    kb_service = KnowledgeBaseService(db)
 
-    if result is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Knowledge Base not found"
-        ) 
+    kb = verify_knowledge_base(
+        db,
+        knowledge_base_id,
+        current_user.id
+    )
+
+    kb_service.delete_knowledge_base(
+        knowledge_base_id,
+        current_user.id
+    )
 
     return {
-        "message": "Knowledge Base deleted successfully"
+        "message": f"Knowledge Base: {kb.name} deleted successfully"
     }

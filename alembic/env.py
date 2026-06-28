@@ -11,10 +11,13 @@ import os
 from app.models.base import Base
 from app.models.user import User
 from app.models.knowledge_base import KnowledgeBase
+from app.models.document import Document
+from app.models.document_chunk import DocumentChunk
 
 load_dotenv()
 
 database_url = os.getenv("DATABASE_URL")
+print("DATABASE URL:", database_url)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

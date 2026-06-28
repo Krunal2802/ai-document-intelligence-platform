@@ -1,45 +1,43 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.schemas.user import UserCreate, UserLogin
-from app.services.user_service import create_user, get_user_by_email
+from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.services.user_service import UserService
 from app.db.dependencies import get_db
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.auth import get_current_user
 
 router = APIRouter()
 
-@router.post("/register/")
+@router.post("/register", response_model=UserResponse)
 async def signup(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
-    check_email_exists = get_user_by_email(db, user.email)
+    user_service = UserService(db)
+
+    check_email_exists = user_service.get_user_by_email(user.email)
 
     if check_email_exists:
         return {
             "message": "This email is used already, use different email."
         }
         
-    new_user = create_user(
-        db = db,
+    new_user = user_service.create_user(
         name = user.name,
         email = user.email,
         password = hash_password(user.password)
     )
 
-    return {
-        "id": new_user.id,
-        "name": new_user.name,
-        "email": new_user.email
-    }
+    return new_user
 
-@router.post("/login/")
+@router.post("/login")
 async def login(
     user: UserLogin,
     db: Session = Depends(get_db)
 ):
-    db_user = get_user_by_email(
-        db = db,
+    user_service = UserService(db)
+
+    db_user = user_service.get_user_by_email(
         email = user.email
     )
 
@@ -65,12 +63,8 @@ async def login(
         "token_type" : "bearer"
     }
 
-@router.get("/me/")
+@router.get("/me", response_model=UserResponse)
 async def get_me(
     current_user = Depends(get_current_user)
 ):
-    return {
-            "id": current_user.id,
-            "name": current_user.name,
-            "email": current_user.email
-        }
+    return current_user
